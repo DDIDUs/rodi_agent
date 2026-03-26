@@ -1,0 +1,114 @@
+[
+    {
+        "instruction": "Move linearly to the designated position.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A);"
+    },
+    {
+        "instruction": "Move to the target position based on the flange. I will fill in the position values later.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A);"
+    },
+    {
+        "instruction": "Move linearly to X=320 Y=120 Z=450 RX=-180 RY=0 RZ=90 based on TCP.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[320,120,450,-180,0,90]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('tcp',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A);"
+    },
+    {
+        "instruction": "Move to X=300 Y=0 Z=650 RX=-180 RY=0 RZ=0 based on the flange.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[300,0,650,-180,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A);"
+    },
+    {
+        "instruction": "Move to X=250 Y=300 Z=220 RX=-180 RY=0 RZ=180 based on TCP.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[250,300,220,-180,0,180]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('tcp',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A);"
+    },
+    {
+        "instruction": "Move linearly in asynchronous mode. The position will be user-defined.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A,{async_mode:true});"
+    },
+    {
+        "instruction": "Move asynchronously based on TCP. I will provide the target coordinates later.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('tcp',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A,{async_mode:true});"
+    },
+    {
+        "instruction": "Apply a blending radius of 20 and move.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A,{radius:20});"
+    },
+    {
+        "instruction": "Apply a blending radius of 10 and move to X=500 Y=-80 Z=380 RX=-180 RY=0 RZ=0 based on TCP.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[500,-80,380,-180,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('tcp',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A,{radius:10});"
+    },
+    {
+        "instruction": "Apply a blending radius of 15 and move asynchronously.",
+        "output": "var DEFAULT_M_V=100; var DEFAULT_M_A=1000; var TARGET_POSE_6=[0,0,0,0,0,0]; var POSE_TARGET=createPose(TARGET_POSE_6); moveLinear('flange',POSE_TARGET,DEFAULT_M_V,DEFAULT_M_A,{radius:15,async_mode:true});"
+    },
+    {
+        "instruction": "Move to the specified joint angles.",
+        "output": "var TARGET_JOINT_6=[0,0,0,0,0,0]; moveJoint(TARGET_JOINT_6);"
+    },
+    {
+        "instruction": "I will set the joint angles later. For now, just generate the move code.",
+        "output": "var TARGET_JOINT_6=[0,0,0,0,0,0]; moveJoint(TARGET_JOINT_6);"
+    },
+    {
+        "instruction": "Move to joint angles [0,-90,-90,-90,90,0].",
+        "output": "var TARGET_JOINT_6=[0,-90,-90,-90,90,0]; moveJoint(TARGET_JOINT_6);"
+    },
+    {
+        "instruction": "Move to joint angles [30,-60,-80,-100,90,30].",
+        "output": "var TARGET_JOINT_6=[30,-60,-80,-100,90,30]; moveJoint(TARGET_JOINT_6);"
+    },
+    {
+        "instruction": "Move joints asynchronously. I will provide the angles later.",
+        "output": "var TARGET_JOINT_6=[0,0,0,0,0,0]; moveJoint(TARGET_JOINT_6,{async_mode:true});"
+    },
+    {
+        "instruction": "Move asynchronously to joint angles [10,-70,-90,-90,80,10].",
+        "output": "var TARGET_JOINT_6=[10,-70,-90,-90,80,10]; moveJoint(TARGET_JOINT_6,{async_mode:true});"
+    },
+    {
+        "instruction": "Execute joint movement only when the start condition is satisfied. The angles will be user-defined.",
+        "output": "var TARGET_JOINT_6=[0,0,0,0,0,0]; moveJoint(TARGET_JOINT_6,{start_condition:getGeneralDigitalInput(0) == 1});"
+    },
+    {
+        "instruction": "Move to joint angles [0,-45,-90,-90,90,0] and apply a start condition.",
+        "output": "var TARGET_JOINT_6=[0,-45,-90,-90,90,0]; moveJoint(TARGET_JOINT_6,{start_condition:getGeneralDigitalInput(1) == 1});"
+    },
+    {
+        "instruction": "Execute a circular move. The poses will be set later.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE);"
+    },
+    {
+        "instruction": "Perform a circular move based on the flange. The via and target poses will be user-defined.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE);"
+    },
+    {
+        "instruction": "Perform a circular move via an intermediate pose to the target pose based on TCP. The pose values will be filled in later.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('tcp',VIA_POSE,TARGET_POSE);"
+    },
+    {
+        "instruction": "Specify the via and target poses and perform a circular move based on the flange.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE);"
+    },
+    {
+        "instruction": "Execute a circular move asynchronously. The poses will be set later.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE,{async_mode:true});"
+    },
+    {
+        "instruction": "Perform an asynchronous circular move based on TCP. The via and target poses will be user-defined.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('tcp',VIA_POSE,TARGET_POSE,{async_mode:true});"
+    },
+    {
+        "instruction": "Apply a blending radius of 20 to the circular move. The poses will be set later.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE,{radius:20});"
+    },
+    {
+        "instruction": "Perform a circular move via an intermediate pose based on the flange. The pose values will be filled in later.",
+        "output": "var VIA_POSE_6=[0,0,0,0,0,0]; var TARGET_POSE_6=[0,0,0,0,0,0]; var VIA_POSE=createPose(VIA_POSE_6); var TARGET_POSE=createPose(TARGET_POSE_6); moveCircle('flange',VIA_POSE,TARGET_POSE);"
+    },
+    {
+        "instruction": "When connected to the socket named PLC01, send the string 'HELLO'.",
+        "output": "var SOCKET_NAME='PLC01'; socketAddListener(SOCKET_NAME,'connection',function(){socketSendString(SOCKET_NAME,'HELLO');});"
+    },
+    {
+        "instruction": "When data is received from the socket named PLC01, print it as a message. Use newline (\\n) as the data delimiter.",
+        "output": "var SOCKET_NAME='PLC01'; socketSetPrefixSuffix(SOCKET_NAME,'','\\n'); socketAddListener(SOCKET_NAME,'data',function(d){message('rx',d);});"
+    }
+]

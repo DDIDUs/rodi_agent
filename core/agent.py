@@ -7,12 +7,14 @@ from datetime import datetime
 from .tools import RodiTools
 from .llm_client import OpenAILLMClient
 from .prompts import SYSTEM_PROMPT, TODO_GENERATION_PROMPT, TODO_CHECK_PROMPT
+from .orchestrator import Orchestrator
 
 class RodiAgent:
     def __init__(self, config_path: str = "configs/llm_config.json"):
         if not os.path.isabs(config_path):
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), config_path)
         self.llm = OpenAILLMClient(config_path=config_path)
+        self.orchestrator = Orchestrator(self.llm)
         
         self.tools = RodiTools()
         self.history = [] # Linear history of the current session
@@ -90,18 +92,11 @@ class RodiAgent:
             print(f"[Error Saving Result]: {e}")
 
     def run(self, user_instruction: str, problem_idx: str = None):
-        print("\n--- [Analysis: Generating TODO List] ---")
-        todo_history = [
-            {"role": "system", "content": TODO_GENERATION_PROMPT},
-            {"role": "user", "content": user_instruction}
-        ]
-        try:
-            todo_list = self.llm.generate(todo_history)
-        except Exception as e:
-            print(f"Agent Error (TODO LLM): {e}")
-            todo_list = "Could not generate TODO list."
-            
-        print(f"{todo_list}\n")
+        todo_list = self.orchestrator.generate_approved_todo(user_instruction)
+        
+        if not todo_list:
+            print("Failed to generate an approved TODO list. Aborting.")
+            return None
 
         # Initialize conversation for this run
         enhanced_instruction = f"User Instruction:\n{user_instruction}\n\nPlanned TODO List:\n{todo_list}\n\nPlease execute these steps."
@@ -113,7 +108,6 @@ class RodiAgent:
         max_steps = 20
         step = 0
         final_output = None
-        todos_checked = 0
         
         while step < max_steps:
             # Generate LLM response
@@ -134,30 +128,20 @@ class RodiAgent:
             if msg_type == 'output':
                 code_part, thought_part = content, full_text
                 
-                if todos_checked == 0:
-                    observation = "SYSTEM ERROR: You attempted to generate Final Output without calling `check_todo` to verify your steps. You MUST call `check_todo` at least once before outputting the final code."
+                # Success
+                final_output = code_part
+                
+                print("\n--- [Verification: Checking Output via Auditor] ---")
+                verification_result = self.orchestrator.verify_generated_code(user_instruction, todo_list, final_output)
+                print(f"{verification_result}\n")
+                
+                if "[VERIFICATION FAILURE]" in verification_result:
+                    observation = f"Code Verification Failed:\n{verification_result}\n\nPlease revise your code."
                     print(f"Observation: {observation}")
                     self.history.append({"role": "user", "content": f"Observation:\n{observation}"})
                     step += 1
                     continue
-
-                # Success
-                final_output = code_part
-                
-                #print("\n--- [Verification: Checking Output] ---")
-                #verify_prompt = f"User Instruction:\n{user_instruction}\n\nPlanned TODO List:\n{todo_list}\n\nGenerated Code:\n{final_output}"
-                #verify_history = [
-                #    {"role": "system", "content": TODO_CHECK_PROMPT},
-                #    {"role": "user", "content": verify_prompt}
-                #]
-                #try:
-                #    verification_result = self.llm.generate(verify_history)
-                #except Exception as e:
-                #    print(f"Agent Error (Verify LLM): {e}")
-                #    verification_result = "Could not verify the output."
-                #    
-                #print(f"{verification_result}\n")
-                verification_result = ''
+                    
                 self._save_result(user_instruction, final_output, self.history, problem_idx, todo_list, verification_result)
                 return final_output
             
@@ -171,9 +155,6 @@ class RodiAgent:
                 elif tool_name == "get_information":
                     result = self.tools.get_information(tool_args)
                     observation = json.dumps(result, ensure_ascii=False)
-                elif tool_name == "check_todo":
-                    observation = self.tools.check_todo(tool_args)
-                    todos_checked += 1
                 elif tool_name == "search_rag":
                     result = self.tools.search_rag(tool_args)
                     observation = json.dumps(result, ensure_ascii=False)
@@ -198,19 +179,17 @@ class RodiAgent:
         Generator version of run() designed to be consumed by UIs (like Streamlit).
         Yields dictionaries containing state updates.
         """
-        yield {"type": "status", "content": "Analyzing and generating TODO list..."}
+        todo_list = None
+        for item in self.orchestrator.generate_approved_todo_stream(user_instruction):
+            yield item
+            if item["type"] == "todo":
+                todo_list = item["content"]
+            elif item["type"] == "error":
+                return
         
-        todo_history = [
-            {"role": "system", "content": TODO_GENERATION_PROMPT},
-            {"role": "user", "content": user_instruction}
-        ]
-        try:
-            todo_list = self.llm.generate(todo_history)
-        except Exception as e:
-            yield {"type": "error", "content": f"Agent Error (TODO LLM): {e}"}
+        if not todo_list:
+            yield {"type": "error", "content": "Failed to generate an approved TODO list. Aborting."}
             return
-            
-        yield {"type": "todo", "content": todo_list}
 
         # Initialize conversation for this run
         enhanced_instruction = f"User Instruction:\n{user_instruction}\n\nPlanned TODO List:\n{todo_list}\n\nPlease execute these steps."
@@ -222,7 +201,6 @@ class RodiAgent:
         max_steps = 20
         step = 0
         final_output = None
-        todos_checked = 0
         
         while step < max_steps:
             yield {"type": "status", "content": f"Thinking (Step {step + 1}/{max_steps})..."}
@@ -244,16 +222,20 @@ class RodiAgent:
                 code_part, thought_part = content, full_text
                 yield {"type": "thought", "content": thought_part}
                 
-                if todos_checked == 0:
-                    observation = "SYSTEM ERROR: You attempted to generate Final Output without calling `check_todo` to verify your steps. You MUST call `check_todo` at least once before outputting the final code."
+                # Success
+                final_output = code_part
+                
+                yield {"type": "status", "content": "Verifying Output via Auditor..."}
+                verification_result = self.orchestrator.verify_generated_code(user_instruction, todo_list, final_output)
+                yield {"type": "observation", "content": f"Verification: {verification_result}"}
+                
+                if "[VERIFICATION FAILURE]" in verification_result:
+                    observation = f"Code Verification Failed:\n{verification_result}\n\nPlease revise your code."
                     yield {"type": "observation", "content": observation}
                     self.history.append({"role": "user", "content": f"Observation:\n{observation}"})
                     step += 1
                     continue
-
-                # Success
-                final_output = code_part
-                verification_result = ''
+                
                 self._save_result(user_instruction, final_output, self.history, problem_idx, todo_list, verification_result)
                 yield {"type": "finish", "content": final_output}
                 return
@@ -272,9 +254,6 @@ class RodiAgent:
                 elif tool_name == "get_information":
                     result = self.tools.get_information(tool_args)
                     observation = json.dumps(result, ensure_ascii=False)
-                elif tool_name == "check_todo":
-                    observation = self.tools.check_todo(tool_args)
-                    todos_checked += 1
                 elif tool_name == "search_rag":
                     result = self.tools.search_rag(tool_args)
                     observation = json.dumps(result, ensure_ascii=False)

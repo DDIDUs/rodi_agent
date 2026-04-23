@@ -40,3 +40,4 @@ streamlit run dashboard.py
 
 - **Results Viewer**: 각 모델별 정확도 측정, 통과 여부 및 내부(agent tools 등) 실행 내역(Trace) 확인 기능
 - **Interactive Generation**: 웹 형태의 UI를 통해 명령 하달 후 코드 생성 과정을 실시간으로 확인하는 기능
+  내부적으로는 먼저 요구사항을 만족하기 위해 확인해야 할 기능 설명 리스트를 생성하고, 이를 기반으로 RAG 검색과 최종 검증을 수행합니다.

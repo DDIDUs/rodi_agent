@@ -144,6 +144,10 @@ def render_results_viewer():
                     # Display metadata manually for better formatting
                     st.markdown("**Model:** " + str(problem_detail.get('model', 'N/A')))
                     st.markdown("**Instruction:**\n" + str(problem_detail.get('instruction', 'N/A')))
+                    feature_checklist = problem_detail.get('feature_checklist', '')
+                    if feature_checklist:
+                        st.markdown("**Feature Checklist:**")
+                        st.markdown(feature_checklist)
                     
                     st.divider()
                     
@@ -209,7 +213,7 @@ def render_interactive_generation():
         
         # UI Elements for streaming
         status_placeholder = st.empty()
-        todo_placeholder = st.empty()
+        checklist_placeholder = st.empty()
         
         st.subheader("Agent Execution Trace")
         trace_container = st.container()
@@ -236,8 +240,8 @@ def render_interactive_generation():
                     if update_type == "status":
                         status_placeholder.info(f"🔄 Status: {content}")
                     
-                    elif update_type == "todo":
-                        with todo_placeholder.expander("📝 Generated TODO List", expanded=True):
+                    elif update_type in {"checklist_draft", "checklist"}:
+                        with checklist_placeholder.expander("📝 Generated Feature Checklist", expanded=True):
                             st.markdown(content)
                             
                     elif update_type == "thought":

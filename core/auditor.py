@@ -1,20 +1,20 @@
 import json
 import re
-from .prompts import AUDITOR_PROMPT, TODO_CHECK_PROMPT
+from .prompts import AUDITOR_PROMPT, CODE_VERIFICATION_PROMPT
 from .llm_client import OpenAILLMClient
 
 class AuditorAgent:
     def __init__(self, llm_client: OpenAILLMClient):
         self.llm = llm_client
 
-    def verify_code(self, instruction: str, todo_list: str, generated_code: str) -> str:
+    def verify_code(self, instruction: str, feature_checklist: str, generated_code: str) -> str:
         verify_prompt = (
             f"User Instruction:\n{instruction}\n\n"
-            f"Planned TODO List:\n{todo_list}\n\n"
+            f"Feature Checklist:\n{feature_checklist}\n\n"
             f"Generated Code:\n{generated_code}"
         )
         history = [
-            {"role": "system", "content": TODO_CHECK_PROMPT},
+            {"role": "system", "content": CODE_VERIFICATION_PROMPT},
             {"role": "user", "content": verify_prompt}
         ]
         try:
@@ -36,8 +36,12 @@ class AuditorAgent:
         
         return text.strip()
 
-    def evaluate_todo(self, instruction: str, todo_list: str) -> dict:
-        prompt = f"User Instruction:\n{instruction}\n\nProposed TODO List:\n{todo_list}\n\nPlease evaluate and output the JSON."
+    def evaluate_checklist(self, instruction: str, feature_checklist: str) -> dict:
+        prompt = (
+            f"User Instruction:\n{instruction}\n\n"
+            f"Proposed Feature Checklist:\n{feature_checklist}\n\n"
+            "Please evaluate and output the JSON."
+        )
         history = [
             {"role": "system", "content": AUDITOR_PROMPT},
             {"role": "user", "content": prompt}

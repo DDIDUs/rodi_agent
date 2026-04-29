@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Dict, Any, List, Generator
 
 from .tools import RodiTools
 from .llm_client import OpenAILLMClient
-from .prompts import SYSTEM_PROMPT
+from .prompts import build_system_prompt
 from .orchestrator import Orchestrator
 
 class AgentResponse:
@@ -99,8 +99,9 @@ class RodiAgent:
             print("Failed to generate an approved feature checklist. Aborting.")
             return None
 
+        system_prompt = build_system_prompt(user_instruction, feature_checklist)
         self.history = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {
                 "role": "user",
                 "content": (
@@ -111,7 +112,7 @@ class RodiAgent:
             }
         ]
         
-        max_steps = 20
+        max_steps = 8
         for step in range(max_steps):
             try:
                 response_text = self.llm.generate(self.history, stop_sequences=["Observation:"])
@@ -154,8 +155,9 @@ class RodiAgent:
             yield {"type": "error", "content": "Failed to generate an approved feature checklist. Aborting."}
             return
 
+        system_prompt = build_system_prompt(user_instruction, feature_checklist)
         self.history = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {
                 "role": "user",
                 "content": (
@@ -166,7 +168,7 @@ class RodiAgent:
             }
         ]
         
-        max_steps = 20
+        max_steps = 8
         for step in range(max_steps):
             yield {"type": "status", "content": f"Thinking (Step {step + 1}/{max_steps})..."}
             try:

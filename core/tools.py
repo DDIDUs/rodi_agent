@@ -1,11 +1,15 @@
 import json
 import re
 import os
+import hashlib
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 RODI_DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'rodi_data.json')
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
+
+# Simple in-memory RAG cache
+_RAG_CACHE: Dict[str, Dict[str, Any]] = {}
 
 class RodiTools:
     @staticmethod
@@ -58,6 +62,12 @@ class RodiTools:
     @staticmethod
     def search_rag(query: str) -> Dict[str, Any]:
         import requests
+        
+        # Check cache first
+        cache_key = hashlib.md5(query.encode()).hexdigest()
+        if cache_key in _RAG_CACHE:
+            return _RAG_CACHE[cache_key]
+        
         url = 'http://129.254.222.37:10001/api/search/dense'
         params = {'collection_name': 'rodi_script_api_docs', 'text': query, 'limit': 3}
         headers = {'accept': 'application/json'}
@@ -67,6 +77,8 @@ class RodiTools:
             response.raise_for_status()
             result_data = response.json()
             RodiTools._log_rag_query(query, result_data)
+            # Store in cache
+            _RAG_CACHE[cache_key] = result_data
             return result_data
         except Exception as e:
             return {"error": f"Failed to fetch RAG data: {str(e)}"}
